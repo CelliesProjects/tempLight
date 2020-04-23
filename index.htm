@@ -9,8 +9,8 @@
 <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
 <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
 <script>!function(a,b){"function"==typeof define&&define.amd?define([],b):"undefined"!=typeof module&&module.exports?module.exports=b():a.ReconnectingWebSocket=b()}(this,function(){function a(b,c,d){function l(a,b){var c=document.createEvent("CustomEvent");return c.initCustomEvent(a,!1,!1,b),c}var e={debug:!1,automaticOpen:!0,reconnectInterval:1e3,maxReconnectInterval:3e4,reconnectDecay:1.5,timeoutInterval:2e3};d||(d={});for(var f in e)this[f]="undefined"!=typeof d[f]?d[f]:e[f];this.url=b,this.reconnectAttempts=0,this.readyState=WebSocket.CONNECTING,this.protocol=null;var h,g=this,i=!1,j=!1,k=document.createElement("div");k.addEventListener("open",function(a){g.onopen(a)}),k.addEventListener("close",function(a){g.onclose(a)}),k.addEventListener("connecting",function(a){g.onconnecting(a)}),k.addEventListener("message",function(a){g.onmessage(a)}),k.addEventListener("error",function(a){g.onerror(a)}),this.addEventListener=k.addEventListener.bind(k),this.removeEventListener=k.removeEventListener.bind(k),this.dispatchEvent=k.dispatchEvent.bind(k),this.open=function(b){h=new WebSocket(g.url,c||[]),b||k.dispatchEvent(l("connecting")),(g.debug||a.debugAll)&&console.debug("ReconnectingWebSocket","attempt-connect",g.url);var d=h,e=setTimeout(function(){(g.debug||a.debugAll)&&console.debug("ReconnectingWebSocket","connection-timeout",g.url),j=!0,d.close(),j=!1},g.timeoutInterval);h.onopen=function(){clearTimeout(e),(g.debug||a.debugAll)&&console.debug("ReconnectingWebSocket","onopen",g.url),g.protocol=h.protocol,g.readyState=WebSocket.OPEN,g.reconnectAttempts=0;var d=l("open");d.isReconnect=b,b=!1,k.dispatchEvent(d)},h.onclose=function(c){if(clearTimeout(e),h=null,i)g.readyState=WebSocket.CLOSED,k.dispatchEvent(l("close"));else{g.readyState=WebSocket.CONNECTING;var d=l("connecting");d.code=c.code,d.reason=c.reason,d.wasClean=c.wasClean,k.dispatchEvent(d),b||j||((g.debug||a.debugAll)&&console.debug("ReconnectingWebSocket","onclose",g.url),k.dispatchEvent(l("close")));var e=g.reconnectInterval*Math.pow(g.reconnectDecay,g.reconnectAttempts);setTimeout(function(){g.reconnectAttempts++,g.open(!0)},e>g.maxReconnectInterval?g.maxReconnectInterval:e)}},h.onmessage=function(b){(g.debug||a.debugAll)&&console.debug("ReconnectingWebSocket","onmessage",g.url,b.data);var c=l("message");c.data=b.data,k.dispatchEvent(c)},h.onerror=function(b){(g.debug||a.debugAll)&&console.debug("ReconnectingWebSocket","onerror",g.url,b),k.dispatchEvent(l("error"))}},1==this.automaticOpen&&this.open(!1),this.send=function(b){if(h)return(g.debug||a.debugAll)&&console.debug("ReconnectingWebSocket","send",g.url,b),h.send(b);throw"INVALID_STATE_ERR : Pausing to reconnect websocket"},this.close=function(a,b){"undefined"==typeof a&&(a=1e3),i=!0,h&&h.close(a,b)},this.refresh=function(){h&&h.close()}}return a.prototype.onopen=function(){},a.prototype.onclose=function(){},a.prototype.onconnecting=function(){},a.prototype.onmessage=function(){},a.prototype.onerror=function(){},a.debugAll=!1,a.CONNECTING=WebSocket.CONNECTING,a.OPEN=WebSocket.OPEN,a.CLOSING=WebSocket.CLOSING,a.CLOSED=WebSocket.CLOSED,a});</script>
-<title>crazyLight</title>
-<meta name="description" content="crazyLight">
+<title>tempLight</title>
+<meta name="description" content="tempLight">
 <meta name="author" content="Cellie">
 <style>
 html, body{
@@ -121,7 +121,7 @@ html, body{
 </div>
 <script>
 var socket;
-const debugip="192.168.0.105";  //change this to the esp32 ip for remote running of this page
+const debugip="192.168.0.108";  //change this to the esp32 ip for remote running of this page
 $(document).ready(function(){
   $('#container').css('top',($('#container').height()+$('.title').height())+'px');
   var ws_host="ws://";
@@ -134,8 +134,24 @@ $(document).ready(function(){
   ws.onmessage = function(e) {
     var command=e.data.split("\n");
     switch (command[0]){
-      case "strobofreq" : {console.log("strobo_freq received");$('#strobo_freqstr').text(command[1]+"Hz");$('#strobo_freqpicker').val(command[1]);break;}
-      case "colorname" : {console.log("colorname received");$('#colorname').text(command[1]);$('#colortab').css('background',command[1]);$('#colorpicker').val(command[1]);break;}
+      case "sensor" : {
+        console.log("temperature received");
+        $('#currenttemp').text(command[1]+"℃");
+        break;
+      }
+      case "strobofreq" : {
+        console.log("strobo_freq received");
+        $('#strobo_freqstr').text(command[1]+"Hz");
+        $('#strobo_freqpicker').val(command[1]);
+        break;
+      }
+      case "colorname" : {
+        console.log("colorname received");
+        $('#colorname').text(command[1]);
+        $('#colortab').css('background',command[1]);
+        $('#colorpicker').val(command[1]);
+        break;
+      }
       case "state" : {
         switch(command[1]) {
           case "OFF" : {$('.tablinks').eq(0).click();break;}
@@ -145,8 +161,9 @@ $(document).ready(function(){
           default:{console.log('Unhandled state:'+command[1]);break};
         }
       }
-      case "sensor" : {console.log("temperature received");$('#currenttemp').text(command[1]+"℃");break;}
-    }      
+
+      default: {console.log("Unhandled command: %s->%s", command[0],command[1]?command[1]:NULL);}
+    }
   };
   ws.onclose = function(event) {
     if (event.wasClean) {
@@ -165,7 +182,6 @@ $('.tablinks').on('click',function(){
   $('.tabcontent').hide().eq($(this).index()).show();
   $('.tablinks').css('background','');
   $(this).css('background','darkgray');
-  console.log($(this).val());
   const val= $(this).val();
   ws.send("switchstate\n"+val+"\n");
 });
@@ -175,7 +191,7 @@ $('#colorpicker').on('input',function(){
   ws.send("color\n"+$(this).val());
 });
 $('#strobo_freqpicker').on('input',function(){
-  ws.send("new_strobofreq\n"+$(this).val());
+  ws.send("setstrobofreq\n"+$(this).val());
 });
 </script>
 </body>
