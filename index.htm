@@ -136,7 +136,8 @@ $(document).ready(function(){
     switch (command[0]){
       case "sensor" : {
         console.log("temperature received");
-        $('#currenttemp').text(command[1]+"℃");
+        let temp=command[1].substring(0,command[1].indexOf(".")+4);
+        $('#currenttemp').text(temp+"℃");
         break;
       }
       case "strobofreq" : {

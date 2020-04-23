@@ -95,7 +95,7 @@ void updateOLED() {
   OLED.drawString(64, 0, WiFi.localIP().toString());
   OLED.drawString(64, 16 + 24, light.stateStr(light.state()));
   OLED.setFont(ArialMT_Plain_24);
-  OLED.drawString(64, 16, (String)temperature.temperature+"℃");
+  OLED.drawString(64, 16, (String)temperature.temperature+"°C");
   OLED.display();
 }
 
